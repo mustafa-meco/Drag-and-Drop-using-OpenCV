@@ -1,4 +1,5 @@
 import cv2
+import cvzone
 from cvzone.HandTrackingModule import HandDetector
 
 W, H = 3, 4
@@ -28,18 +29,21 @@ class DragRect():
         w, h = self.size
 
         # If the index finger tip is in the rectangle region
-        if cx - w // 2 < cursor[0] < cx + w // 2 and cy - w // 2 < cursor[1] < cy + w // 2:
+        if cx - w // 2 < cursor[0] < cx + w // 2 and cy - h // 2 < cursor[1] < cy + h // 2:
             #colorR = (0, 255, 0)
             self.posCenter = cursor[:2]
             self.selected = True
         else:
             self.selected = False
 
-    def draw(self, img):
+    def draw(self, img, cornerRect=False):
         cx, cy = self.posCenter
         w, h = self.size
 
-        cv2.rectangle(img, (cx - w // 2, cy - w // 2), (cx + w // 2, cy + w // 2), colorR, cv2.FILLED)
+        cv2.rectangle(img, (cx - w // 2, cy - h // 2), (cx + w // 2, cy + h // 2), colorR, cv2.FILLED)
+
+        if cornerRect:
+            cvzone.cornerRect(img, (cx - w // 2, cy - h // 2, w, h),20, rt=0)
 
         return img
 
@@ -80,7 +84,8 @@ while True:
             colorR = (255,0,255)
 
     for i in range(5):
-        rectList[i].draw(img)
+        rectList[i].draw(img, cornerRect=True)
+
 
 
     cv2.imshow("Image", img)
