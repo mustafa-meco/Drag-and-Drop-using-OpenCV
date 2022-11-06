@@ -1,8 +1,16 @@
 import cv2
 import cvzone
+import numpy as np
 from cvzone.HandTrackingModule import HandDetector
+from enum import Enum
+
+class DrawStyle(Enum):
+    SOLID = 0
+    TRANSPARENT = 1
 
 W, H = 3, 4
+
+Transperency = True
 
 cap = cv2.VideoCapture(0)
 cap.set(W, 1200)
@@ -36,16 +44,29 @@ class DragRect():
         else:
             self.selected = False
 
-    def draw(self, img, cornerRect=False):
-        cx, cy = self.posCenter
-        w, h = self.size
+    def draw(self, img, cornerRect=False ):
+        # if drawStyle == DrawStyle.SOLID:
+            cx, cy = self.posCenter
+            w, h = self.size
 
-        cv2.rectangle(img, (cx - w // 2, cy - h // 2), (cx + w // 2, cy + h // 2), colorR, cv2.FILLED)
+            cv2.rectangle(img, (cx - w // 2, cy - h // 2), (cx + w // 2, cy + h // 2), colorR, cv2.FILLED)
 
-        if cornerRect:
-            cvzone.cornerRect(img, (cx - w // 2, cy - h // 2, w, h),20, rt=0)
+            if cornerRect:
+                cvzone.cornerRect(img, (cx - w // 2, cy - h // 2, w, h),20, rt=0)
+            return img
 
-        return img
+        # elif drawStyle == DrawStyle.TRANSPARENT:
+        #     cx, cy = self.posCenter
+        #     w, h = self.size
+        #
+        #     cv2.rectangle(imgNew, (cx - w // 2, cy - h // 2), (cx + w // 2, cy + h // 2), colorR, cv2.FILLED)
+        #
+        #     if cornerRect:
+        #         cvzone.cornerRect(imgNew, (cx - w // 2, cy - h // 2, w, h), 20, rt=0)
+        #
+        #     return out
+
+
 
 def isRecSelected(recList):
     for rec in recList:
@@ -83,10 +104,23 @@ while True:
         else:
             colorR = (255,0,255)
 
-    for i in range(5):
-        rectList[i].draw(img, cornerRect=True)
-
-
+    if Transperency:
+        imgNew = np.zeros_like(img, np.uint8)
+        for i in range(5):
+            rectList[i].draw(imgNew, cornerRect=True)
+        out = img.copy()
+        alpha = 0.5
+        mask = imgNew.astype(bool)
+        out[mask] = cv2.addWeighted(img, alpha, imgNew, 1 - alpha, 0)[mask]
+        img = out
+    else:
+        for i in range(5):
+            rectList[i].draw(img, cornerRect=True)
 
     cv2.imshow("Image", img)
-    cv2.waitKey(1)
+    key = cv2.waitKey(1)
+
+    if key == ord("t"):
+        Transperency = not Transperency
+    if key == ord("q"):
+        break
