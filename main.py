@@ -43,6 +43,10 @@ class DragRect():
 
         return img
 
+def isRecSelected(recList):
+    for rec in recList:
+        if rec.selected: return True
+    return False
 
 rectList = []
 for x in range(5):
@@ -52,13 +56,13 @@ while True:
     success, img = cap.read()
     img = cv2.flip(img, 1)
 
-    hands, img = detector.findHands(img)
+    hands, img = detector.findHands(img, flipType=False)
 
 
     if hands:
         lmList = hands[0]["lmList"]
 
-        l, _, _ = detector.findDistance(lmList[8][:2], lmList[12][:2], img, draw=False)
+        l, _ = detector.findDistance(lmList[8][:2], lmList[12][:2])
 
         print(l)
 
@@ -68,7 +72,9 @@ while True:
 
             # Call the update here
             for i in range(5):
-                rectList[i].update(cursor)
+                if rectList[i].selected or not isRecSelected(rectList):
+                    rectList[i].update(cursor)
+
 
         else:
             colorR = (255,0,255)
